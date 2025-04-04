@@ -1,0 +1,8 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE Usuarios (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(250) NOT NULL UNIQUE,
+    pwd VARCHAR(250) NOT NULL
+);
