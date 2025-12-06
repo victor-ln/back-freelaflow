@@ -1,6 +1,7 @@
 package com.freelaflow.back_freelaflow.controllers.kanban;
 
 import com.freelaflow.back_freelaflow.exceptions.GlobalExceptionHandler;
+import com.freelaflow.back_freelaflow.services.KanbanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +15,11 @@ import java.util.Map;
 @RequestMapping("api/v1/kanban")
 public class KanbanController {
     private final GlobalExceptionHandler globalExceptionHandler;
+    private final KanbanService kanbanService;
 
-    public KanbanController(GlobalExceptionHandler globalExceptionHandler) {
+    public KanbanController(GlobalExceptionHandler globalExceptionHandler, KanbanService kanbanService) {
         this.globalExceptionHandler = globalExceptionHandler;
+        this.kanbanService = kanbanService;
     }
 
     @GetMapping

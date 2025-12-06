@@ -73,4 +73,19 @@ public class FreelancerController {
         Freelancer updatedFreelancer = freelancerService.updateRoles(id, dto);
         return globalExceptionHandler.handleSuccess("sucesso", updatedFreelancer);
     }
+
+    @GetMapping("/by-email/{email}")
+    public ResponseEntity<Map<String, Object>> getFreelancerByEmail(@PathVariable String email) {
+        FreelancerReponseDto freelancer = freelancerService.consultarFreelancerByEmail(email);
+        return globalExceptionHandler.handleSuccess("sucesso", freelancer);
+    }
+
+    @PatchMapping("/{id}/status")
+        public ResponseEntity<Map<String, Object>> updateStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, Boolean> body) {
+        FreelancerReponseDto updated = freelancerService.updateStatus(id, body.get("ativo"));
+        return globalExceptionHandler.handleSuccess("Status atualizado com sucesso", updated);
+    }
+
 }
