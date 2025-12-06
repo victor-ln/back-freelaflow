@@ -26,12 +26,12 @@ public class FreelancerController {
         FreelancerReponseDto novo = freelancerService.salvarFreelancer(freelancerRequestDto);
         return globalExceptionHandler.handleSuccess("sucesso", novo);
     }
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<Map<String, Object>> createFreelancerWithAdmin(@RequestBody FreelancerRequestDto freelancerRequestDto) {
         FreelancerReponseDto novo = freelancerService.salvarFreelancer(freelancerRequestDto);
         return globalExceptionHandler.handleSuccess("sucesso", novo);
     }
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<Map<String, Object>> getFreelancer(@RequestParam(defaultValue = "1") int page,
                                                 @RequestParam(defaultValue = "10") int limit,
                                                 @RequestParam(required = false) String search) {

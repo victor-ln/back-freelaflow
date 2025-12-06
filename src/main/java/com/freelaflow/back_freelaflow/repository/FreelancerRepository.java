@@ -13,4 +13,5 @@ public interface FreelancerRepository extends JpaRepository<Freelancer, Long> {
     boolean existsByEmailOrCpfCnpj(String email, String cpf_cnpj);
     boolean existsByEmail(String email);
     boolean existsByCpfCnpj(String cpfCnpj);
+    Optional<Freelancer> findByEmail(String email);
 }

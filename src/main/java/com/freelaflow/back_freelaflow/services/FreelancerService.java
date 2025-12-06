@@ -189,4 +189,63 @@ public class FreelancerService {
         dto.setRoles(freelancer.getRoles());
         return dto;
     }
+
+    /**
+     * Busca freelancer por email
+     * 
+     * @param email Email do freelancer
+     * @return DTO de resposta do freelancer
+     * @throws ResourceNotFoundException se não encontrado
+     */
+    public FreelancerReponseDto consultarFreelancerByEmail(String email) {
+        Freelancer freelancer = freelancerRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Freelancer não encontrado"));
+        return freelancerEntityToFreelancerDto(freelancer);
+    }
+
+    /**
+     * Atualiza apenas o status ativo/inativo do freelancer
+     * 
+     * @param id ID do freelancer
+     * @param ativo Novo status
+     * @return DTO de resposta do freelancer atualizado
+     */
+    public FreelancerReponseDto updateStatus(Long id, Boolean ativo) {
+        Freelancer freelancer = freelancerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Freelancer não encontrado"));
+        
+        freelancer.setAtivo(ativo);
+        freelancerRepository.save(freelancer);
+        
+        return freelancerEntityToFreelancerDto(freelancer);
+    }
+
+
+    // 3. FreelancerController.java
+    // Adicionar endpoint:
+    // ============================================
+
+    /**
+     * Busca freelancer por email
+     * 
+     * @param email Email do freelancer
+     * @return Response com dados do freelancer
+     */
+    @GetMapping("/by-email/{email}")
+    public ResponseEntity<Map<String, Object>> getFreelancerByEmail(@PathVariable String email) {
+        FreelancerReponseDto freelancer = freelancerService.consultarFreelancerByEmail(email);
+        return globalExceptionHandler.handleSuccess("sucesso", freelancer);
+    }
+
+    /**
+     * OPCIONAL: Se preferir ter um endpoint dedicado para status
+     * Mas pode usar o PATCH genérico /:id
+     */
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Map<String, Object>> updateStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, Boolean> body) {
+        FreelancerReponseDto updated = freelancerService.updateStatus(id, body.get("ativo"));
+        return globalExceptionHandler.handleSuccess("Status atualizado com sucesso", updated);
+    }
 }

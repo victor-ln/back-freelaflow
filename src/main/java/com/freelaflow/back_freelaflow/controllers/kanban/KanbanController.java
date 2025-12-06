@@ -14,7 +14,6 @@ import java.util.Map;
 @RequestMapping("api/v1/kanban")
 public class KanbanController {
     private final GlobalExceptionHandler globalExceptionHandler;
-    private final GlobalExceptionHandler globalExceptionHandler;
 
     public KanbanController(GlobalExceptionHandler globalExceptionHandler) {
         this.globalExceptionHandler = globalExceptionHandler;
