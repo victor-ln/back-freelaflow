@@ -63,4 +63,18 @@ public class ClienteController {
     public ResponseEntity<Map<String, Object>> getClientByCpfCnpj(@PathVariable String cpfCnpj) {
         return globalExceptionHandler.handleSuccess("Sucesso",clienteService.getClientByCpfCnpj(cpfCnpj));
     }
+
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAll(
+            @RequestParam(required = false) Long freelancerId, // O BFF deve enviar isso
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(required = false) String search) {
+        
+        // Fallback para evitar erro se o BFF não enviar (idealmente o BFF deve enviar)
+        if (freelancerId == null) freelancerId = 1L; 
+
+        // Reutilizando o método existente do service
+        return globalExceptionHandler.handleSuccess("Sucesso", clienteService.getAllClientsByFreelancer(freelancerId, page, limit, search));
+    }
 }
