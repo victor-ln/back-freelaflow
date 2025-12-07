@@ -15,7 +15,10 @@ public class Task {
     private Long id;
 
     private String titulo;
+
+    @Column(columnDefinition = "TEXT")
     private String descricao;
+
     private String status = "A Fazer";
     private String prioridade = "Média";
 

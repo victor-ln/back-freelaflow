@@ -19,7 +19,9 @@ public class Role {
     @Column(unique = true, nullable = false)
     private String nome;
 
+    @Column(columnDefinition = "TEXT")
     private String descricao;
+
     private Boolean ativo = true;
 
     @JsonIgnore

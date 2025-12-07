@@ -15,7 +15,10 @@ public class Kanban {
     private Long id;
 
     private String titulo;
+
+    @Column(columnDefinition = "TEXT")
     private String descricao;
+
     private Boolean ativo = true;
 
     @OneToOne
