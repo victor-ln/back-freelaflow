@@ -8,9 +8,14 @@ import com.freelaflow.back_freelaflow.models.Service;
 import com.freelaflow.back_freelaflow.repository.CategoryRepository;
 import com.freelaflow.back_freelaflow.repository.FreelancerRepository;
 import com.freelaflow.back_freelaflow.repository.ServiceRepository;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @org.springframework.stereotype.Service
 public class ServiceService {
@@ -41,12 +46,33 @@ public class ServiceService {
         return serviceRepository.save(service);
     }
 
-    public Page<Service> listar(Long freelancerId, String search, int page, int limit) {
+    public Page<Service> listar(Long freelancerId, String search, int page, int limit, String status) {
         Pageable pageable = PageRequest.of(page - 1, limit);
-        if (search != null && !search.isBlank()) {
-            return serviceRepository.findByFreelancerIdAndNomeContainingIgnoreCaseAndAtivoTrue(freelancerId, search, pageable);
-        }
-        return serviceRepository.findByFreelancerIdAndAtivoTrue(freelancerId, pageable);
+
+        Specification<Service> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (freelancerId != null) {
+                predicates.add(cb.equal(root.get("freelancer").get("id"), freelancerId));
+            }
+
+            if (status != null) {
+                 // Assumindo que status é String no banco ("ATIVO", etc)
+                 predicates.add(cb.equal(root.get("status"), status));
+            }
+            
+            // Filtra ativos por padrão se não especificado o contrário na lógica de negócio, 
+            // ou mantém o campo 'ativo' booleano
+            predicates.add(cb.equal(root.get("ativo"), true));
+
+            if (search != null && !search.isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("nome")), "%" + search.toLowerCase() + "%"));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return serviceRepository.findAll(spec, pageable);
     }
     
     public Service getById(Long id) {
@@ -56,7 +82,7 @@ public class ServiceService {
 
     public void delete(Long id) {
         Service service = getById(id);
-        service.setAtivo(false); // Soft Delete
+        service.setAtivo(false);
         serviceRepository.save(service);
     }
 }

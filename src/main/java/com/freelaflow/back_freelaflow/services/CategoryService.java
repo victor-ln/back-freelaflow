@@ -9,14 +9,18 @@ import com.freelaflow.back_freelaflow.models.Freelancer;
 import com.freelaflow.back_freelaflow.repository.CategoryRepository;
 import com.freelaflow.back_freelaflow.repository.FreelancerRepository;
 import com.freelaflow.back_freelaflow.utils.PaginationUtils;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -28,15 +32,31 @@ public class CategoryService {
 
     public Map<String, Object> listarCategorias(Long idfreelancer, String search, Boolean ativo, int page, int limit) {
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("tipo").ascending());
-        Page<Category> categorias = categoryRepository.findByFreelancerAndTipoOrAtivo(idfreelancer, search, ativo, pageable);
-        if (categorias.isEmpty()) {
-            throw new ResourceNotFoundException("Categorias não encontradas");
-        }
+        
+        Specification<Category> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            if (idfreelancer != null) {
+                predicates.add(cb.equal(root.get("freelancer").get("id"), idfreelancer));
+            }
+            
+            if (ativo != null) {
+                predicates.add(cb.equal(root.get("ativo"), ativo));
+            }
+
+            if (search != null && !search.isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("tipo")), "%" + search.toLowerCase() + "%"));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<Category> categorias = categoryRepository.findAll(spec, pageable);
+        // Removi a exceção "Categorias não encontradas" se a lista for vazia, pois em APIs REST retornar lista vazia [] é melhor que erro 404
         return PaginationUtils.toPaginatedResponse(categorias, this::categoryEntityToCategoryDto);
     }
 
     public CategoryResponseDto getCategoria(Long id) {
-
         Category category = categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
         return categoryEntityToCategoryDto(category);
     }

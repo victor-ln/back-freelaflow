@@ -1,18 +1,21 @@
 package com.freelaflow.back_freelaflow.services;
 
-import com.freelaflow.back_freelaflow.controllers.dashboard.dto.DashboardResponseDto; // Reutilizando DTO ou crie um específico
 import com.freelaflow.back_freelaflow.controllers.proposals.dto.ProposalRequestDto;
 import com.freelaflow.back_freelaflow.exceptions.ResourceNotFoundException;
 import com.freelaflow.back_freelaflow.models.*;
 import com.freelaflow.back_freelaflow.repository.*;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -23,8 +26,8 @@ public class ProposalService {
     private final FreelancerRepository freelancerRepository;
     private final KanbanRepository kanbanRepository;
     private final ContractRepository contractRepository;
-    private final ServiceRepository serviceRepository; // Assumindo que o contrato precisa de um serviço
-    private final TemplateRepository templateRepository; // Assumindo que o contrato precisa de um template
+    private final ServiceRepository serviceRepository;
+    private final TemplateRepository templateRepository;
 
     public ProposalService(ProposalRepository proposalRepository, ClienteRepository clienteRepository, 
                            FreelancerRepository freelancerRepository, KanbanRepository kanbanRepository,
@@ -39,10 +42,39 @@ public class ProposalService {
         this.templateRepository = templateRepository;
     }
 
-    // LISTAGEM COM FILTROS (Atende findAll, findByStatus, findByClient)
+    // LISTAGEM COM FILTROS DINÂMICOS (Specifications)
     public Page<Proposal> findAll(Long freelancerId, int page, int limit, String search, String status, Long clienteId) {
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("id").descending());
-        return proposalRepository.findByFilters(freelancerId, status, clienteId, search, pageable);
+
+        // Montagem dinâmica da Query
+        Specification<Proposal> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // 1. Filtro Obrigatório/Principal: Freelancer
+            if (freelancerId != null) {
+                predicates.add(cb.equal(root.get("freelancer").get("id"), freelancerId));
+            }
+
+            // 2. Filtro Opcional: Status
+            if (status != null && !status.isEmpty()) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+
+            // 3. Filtro Opcional: Cliente
+            if (clienteId != null) {
+                predicates.add(cb.equal(root.get("cliente").get("id"), clienteId));
+            }
+
+            // 4. Filtro Opcional: Busca por Descrição (Case Insensitive)
+            if (search != null && !search.isEmpty()) {
+                String searchLike = "%" + search.toLowerCase() + "%";
+                predicates.add(cb.like(cb.lower(root.get("descricao")), searchLike));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return proposalRepository.findAll(spec, pageable);
     }
 
     public Proposal findById(Long id) {
@@ -62,7 +94,7 @@ public class ProposalService {
         proposal.setValor(dto.getValor());
         proposal.setCliente(cliente);
         proposal.setFreelancer(freelancer);
-        proposal.setStatus("PENDING"); // Enum do BFF usa PENDING
+        proposal.setStatus("PENDING"); 
 
         return proposalRepository.save(proposal);
     }
@@ -72,7 +104,6 @@ public class ProposalService {
         Proposal proposal = findById(id);
         proposal.setDescricao(dto.getDescricao());
         proposal.setValor(dto.getValor());
-        // Atualizar outros campos se necessário
         return proposalRepository.save(proposal);
     }
 
@@ -81,15 +112,13 @@ public class ProposalService {
         proposalRepository.deleteById(id);
     }
 
-    // AÇÕES ESPECÍFICAS (Aceitar/Rejeitar)
+    // AÇÕES ESPECÍFICAS
     
     @Transactional
     public Proposal accept(Long id) {
         Proposal proposal = findById(id);
         proposal.setStatus("ACCEPTED");
         Proposal saved = proposalRepository.save(proposal);
-        
-        // Regra de Negócio: Criar Kanban ao aceitar
         createKanbanForProposal(saved);
         return saved;
     }
@@ -98,7 +127,6 @@ public class ProposalService {
     public Proposal reject(Long id, String reason) {
         Proposal proposal = findById(id);
         proposal.setStatus("REJECTED");
-        // O motivo (reason) poderia ser salvo se houvesse campo na tabela
         return proposalRepository.save(proposal);
     }
 
@@ -108,26 +136,23 @@ public class ProposalService {
         return proposalRepository.save(proposal);
     }
 
-    // GERAÇÃO DE CONTRATO (Mínimo para funcionar)
+    // GERAÇÃO DE CONTRATO
     @Transactional
     public Contract generateContract(Long proposalId) {
         Proposal proposal = findById(proposalId);
         
-        // Lógica simplificada: pega o primeiro serviço e template do freelancer para não quebrar
-        // No mundo real, isso viria no DTO de entrada
-        com.freelaflow.back_freelaflow.models.Service service = serviceRepository.findByFreelancerIdAndAtivoTrue(proposal.getFreelancer().getId(), PageRequest.of(0,1)).getContent().stream().findFirst().orElse(null);
-        Template template = templateRepository.findByFreelancerId(proposal.getFreelancer().getId(), PageRequest.of(0,1)).getContent().stream().findFirst().orElse(null);
+        var serviceOpt = serviceRepository.findByFreelancerIdAndAtivoTrue(proposal.getFreelancer().getId(), PageRequest.of(0,1)).getContent().stream().findFirst();
+        var templateOpt = templateRepository.findByFreelancerId(proposal.getFreelancer().getId(), PageRequest.of(0,1)).getContent().stream().findFirst();
 
-        if (service == null || template == null) {
-             // Retorna nulo ou erro se não tiver dados para gerar contrato, mas não quebra a proposta
+        if (serviceOpt.isEmpty() || templateOpt.isEmpty()) {
              return null; 
         }
 
         Contract contract = new Contract();
         contract.setFreelancer(proposal.getFreelancer());
         contract.setCliente(proposal.getCliente());
-        contract.setService(service);
-        contract.setTemplate(template);
+        contract.setService(serviceOpt.get());
+        contract.setTemplate(templateOpt.get());
         contract.setNomeArquivo("Contrato_" + proposal.getId() + ".pdf");
         contract.setCaminhoArquivo("/tmp/mock_contract.pdf");
         contract.setStatus("GERADO");
