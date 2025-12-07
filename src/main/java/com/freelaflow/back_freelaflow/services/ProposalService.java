@@ -59,7 +59,7 @@ public class ProposalService {
 
         Proposal proposal = new Proposal();
         proposal.setDescricao(dto.getDescricao());
-        proposal.setValor(dto.getValor());
+        proposal.setValorTotal(dto.getValor());
         proposal.setCliente(cliente);
         proposal.setFreelancer(freelancer);
         proposal.setStatus("PENDING"); // Enum do BFF usa PENDING
@@ -71,7 +71,7 @@ public class ProposalService {
     public Proposal update(Long id, ProposalRequestDto dto) {
         Proposal proposal = findById(id);
         proposal.setDescricao(dto.getDescricao());
-        proposal.setValor(dto.getValor());
+        proposal.setValorTotal(dto.getValor());
         // Atualizar outros campos se necessário
         return proposalRepository.save(proposal);
     }
