@@ -1,4 +1,5 @@
-INSERT INTO role (nome, descricao, ativo) VALUES 
-('Admin', 'Administrador do sistema com acesso total', true),
-('Freelancer', 'Usuário padrão da plataforma com acesso básico', true),
-('Freelancer Premium', 'Usuário com funcionalidades avançadas e limites maiores', true);
+-- Inserir roles iniciais do sistema
+INSERT INTO role (nome, descricao, ativo) VALUES
+('ADMIN', 'Administrador do sistema com acesso total', TRUE),
+('USER', 'Usuário padrão do sistema', TRUE),
+('FREELANCER', 'Freelancer com acesso às funcionalidades principais', TRUE);
