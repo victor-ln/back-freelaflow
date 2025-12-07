@@ -1,5 +1,6 @@
 package com.freelaflow.back_freelaflow.controllers.freelancers;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.freelancers.dto.*;
 import com.freelaflow.back_freelaflow.exceptions.GlobalExceptionHandler;
 import com.freelaflow.back_freelaflow.models.Freelancer;
@@ -32,11 +33,11 @@ public class FreelancerController {
         return globalExceptionHandler.handleSuccess("sucesso", novo);
     }
     @GetMapping("")
-    public ResponseEntity<Map<String, Object>> getFreelancer(@RequestParam(defaultValue = "1") int page,
+    public ResponseEntity<PaginatedResponseDto<FreelancerReponseDto>> getFreelancer(@RequestParam(defaultValue = "1") int page,
                                                 @RequestParam(defaultValue = "10") int limit,
                                                 @RequestParam(required = false) String search) {
-        Map<String, Object> freelancers = freelancerService.listarFreelancers(page, limit, search);
-        return globalExceptionHandler.handleSuccess("sucesso", freelancers);
+        PaginatedResponseDto<FreelancerReponseDto> freelancers = freelancerService.listarFreelancers(page, limit, search);
+        return globalExceptionHandler.handlePaginatedSuccess(freelancers);
     }
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> consultarFreelancer(@PathVariable Long id) {

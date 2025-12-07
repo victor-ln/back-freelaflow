@@ -1,9 +1,11 @@
 package com.freelaflow.back_freelaflow.services;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.proposals.dto.ProposalRequestDto;
 import com.freelaflow.back_freelaflow.exceptions.ResourceNotFoundException;
 import com.freelaflow.back_freelaflow.models.*;
 import com.freelaflow.back_freelaflow.repository.*;
+import com.freelaflow.back_freelaflow.utils.PaginationUtils;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -43,7 +45,7 @@ public class ProposalService {
     }
 
     // LISTAGEM COM FILTROS DINÂMICOS (Specifications)
-    public Page<Proposal> findAll(Long freelancerId, int page, int limit, String search, String status, Long clienteId) {
+    public PaginatedResponseDto<Proposal> findAll(Long freelancerId, int page, int limit, String search, String status, Long clienteId) {
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("id").descending());
 
         // Montagem dinâmica da Query
@@ -74,7 +76,8 @@ public class ProposalService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        return proposalRepository.findAll(spec, pageable);
+        Page<Proposal> pageResult = proposalRepository.findAll(spec, pageable);
+        return PaginationUtils.toPaginatedResponse(pageResult, p -> p);
     }
 
     public Proposal findById(Long id) {

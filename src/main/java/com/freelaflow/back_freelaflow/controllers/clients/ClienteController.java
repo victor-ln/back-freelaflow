@@ -1,5 +1,6 @@
 package com.freelaflow.back_freelaflow.controllers.clients;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.clients.dto.ClientRequestDto;
 import com.freelaflow.back_freelaflow.controllers.clients.dto.ClienteResponseDto;
 import com.freelaflow.back_freelaflow.exceptions.GlobalExceptionHandler;
@@ -29,11 +30,11 @@ public class ClienteController {
     }
 
     @GetMapping("/{id}/freelancer")
-    public ResponseEntity<Map<String, Object>> getAllClientsByFreelancer(@PathVariable Long id,
+    public ResponseEntity<PaginatedResponseDto<ClienteResponseDto>> getAllClientsByFreelancer(@PathVariable Long id,
                                                                          @RequestParam(defaultValue = "1") int page,
                                                                          @RequestParam(defaultValue = "10") int limit,
                                                                          @RequestParam(required = false) String search) {
-        return globalExceptionHandler.handleSuccess("Sucesso", clienteService.getAllClientsByFreelancer(id, page, limit, search));
+        return globalExceptionHandler.handlePaginatedSuccess(clienteService.getAllClientsByFreelancer(id, page, limit, search));
     }
 
     @GetMapping("/{id}")
@@ -65,16 +66,16 @@ public class ClienteController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAll(
+    public ResponseEntity<PaginatedResponseDto<ClienteResponseDto>> getAll(
             @RequestParam(required = false) Long freelancerId, // O BFF deve enviar isso
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(required = false) String search) {
-        
+
         // Fallback para evitar erro se o BFF não enviar (idealmente o BFF deve enviar)
-        if (freelancerId == null) freelancerId = 1L; 
+        if (freelancerId == null) freelancerId = 1L;
 
         // Reutilizando o método existente do service
-        return globalExceptionHandler.handleSuccess("Sucesso", clienteService.getAllClientsByFreelancer(freelancerId, page, limit, search));
+        return globalExceptionHandler.handlePaginatedSuccess(clienteService.getAllClientsByFreelancer(freelancerId, page, limit, search));
     }
 }

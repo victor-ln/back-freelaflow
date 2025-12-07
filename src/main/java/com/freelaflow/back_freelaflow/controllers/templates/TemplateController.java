@@ -1,7 +1,9 @@
 package com.freelaflow.back_freelaflow.controllers.templates;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.templates.dto.TemplateRequestDto;
 import com.freelaflow.back_freelaflow.exceptions.GlobalExceptionHandler;
+import com.freelaflow.back_freelaflow.models.Template;
 import com.freelaflow.back_freelaflow.services.TemplateService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +23,7 @@ public class TemplateController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAll(
+    public ResponseEntity<PaginatedResponseDto<Template>> getAll(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(required = false) Long freelancerId,
@@ -29,7 +31,7 @@ public class TemplateController {
             @RequestParam(required = false) String search) {
 
         Long fId = (freelancerId != null) ? freelancerId : 1L;
-        return globalExceptionHandler.handleSuccess("Lista de Templates",
+        return globalExceptionHandler.handlePaginatedSuccess(
                 templateService.listar(page, limit, fId, status, search));
     }
     

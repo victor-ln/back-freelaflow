@@ -1,5 +1,6 @@
 package com.freelaflow.back_freelaflow.exceptions;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.handlers.ResponseHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,9 @@ public class GlobalExceptionHandler {
         return responseHandler.generateResponse(message, dados, HttpStatus.CREATED);
     }
 
+    public <T> ResponseEntity<PaginatedResponseDto<T>> handlePaginatedSuccess(PaginatedResponseDto<T> paginatedData) {
+        return ResponseEntity.ok(paginatedData);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {

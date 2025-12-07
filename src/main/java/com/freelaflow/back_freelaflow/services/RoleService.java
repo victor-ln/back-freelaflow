@@ -1,5 +1,6 @@
 package com.freelaflow.back_freelaflow.services;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.roles.dto.RoleRequestDto;
 import com.freelaflow.back_freelaflow.controllers.roles.dto.RoleResponseDto;
 import com.freelaflow.back_freelaflow.controllers.roles.dto.RoleUpdateDto;
@@ -12,8 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 @Service
 public class RoleService {
@@ -36,7 +35,7 @@ public class RoleService {
         return rolesEntityToRoles(response);
     }
 
-    public Map<String, Object> getRoles(int page, int limit, Boolean ativo, String search) {
+    public PaginatedResponseDto<RoleResponseDto> getRoles(int page, int limit, Boolean ativo, String search) {
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<Role> resultado;
 

@@ -1,5 +1,6 @@
 package com.freelaflow.back_freelaflow.services;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.templates.dto.TemplateRequestDto;
 import com.freelaflow.back_freelaflow.exceptions.ResourceNotFoundException;
 import com.freelaflow.back_freelaflow.models.Freelancer;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class TemplateService {
@@ -31,7 +31,7 @@ public class TemplateService {
         this.freelancerRepository = freelancerRepository;
     }
 
-    public Map<String, Object> listar(int page, int limit, Long freelancerId, String status, String search) {
+    public PaginatedResponseDto<Template> listar(int page, int limit, Long freelancerId, String status, String search) {
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("id").descending());
 
         Specification<Template> spec = (root, query, cb) -> {

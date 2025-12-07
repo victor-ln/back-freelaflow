@@ -1,5 +1,6 @@
 package com.freelaflow.back_freelaflow.services;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.services.dto.ServiceRequestDto;
 import com.freelaflow.back_freelaflow.exceptions.ResourceNotFoundException;
 import com.freelaflow.back_freelaflow.models.Category;
@@ -8,6 +9,7 @@ import com.freelaflow.back_freelaflow.models.Service;
 import com.freelaflow.back_freelaflow.repository.CategoryRepository;
 import com.freelaflow.back_freelaflow.repository.FreelancerRepository;
 import com.freelaflow.back_freelaflow.repository.ServiceRepository;
+import com.freelaflow.back_freelaflow.utils.PaginationUtils;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,7 +48,7 @@ public class ServiceService {
         return serviceRepository.save(service);
     }
 
-    public Page<Service> listar(Long freelancerId, String search, int page, int limit, String status) {
+    public PaginatedResponseDto<Service> listar(Long freelancerId, String search, int page, int limit, String status) {
         Pageable pageable = PageRequest.of(page - 1, limit);
 
         Specification<Service> spec = (root, query, cb) -> {
@@ -60,8 +62,8 @@ public class ServiceService {
                  // Assumindo que status é String no banco ("ATIVO", etc)
                  predicates.add(cb.equal(root.get("status"), status));
             }
-            
-            // Filtra ativos por padrão se não especificado o contrário na lógica de negócio, 
+
+            // Filtra ativos por padrão se não especificado o contrário na lógica de negócio,
             // ou mantém o campo 'ativo' booleano
             predicates.add(cb.equal(root.get("ativo"), true));
 
@@ -72,7 +74,8 @@ public class ServiceService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        return serviceRepository.findAll(spec, pageable);
+        Page<Service> pageResult = serviceRepository.findAll(spec, pageable);
+        return PaginationUtils.toPaginatedResponse(pageResult, s -> s);
     }
     
     public Service getById(Long id) {

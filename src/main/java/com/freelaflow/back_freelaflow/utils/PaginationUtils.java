@@ -1,22 +1,29 @@
 package com.freelaflow.back_freelaflow.utils;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import org.springframework.data.domain.Page;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PaginationUtils {
-    public static <T, R> Map<String, Object> toPaginatedResponse(Page<T> page, Function<T, R> mapper) {
-        Map<String, Object> resposta = new HashMap<>();
-        resposta.put("data", page.getContent().stream()
+    public static <T, R> PaginatedResponseDto<R> toPaginatedResponse(Page<T> page, Function<T, R> mapper) {
+        List<R> data = page.getContent().stream()
                 .map(mapper)
-                .collect(Collectors.toList()));
-        resposta.put("total", page.getTotalElements());
-        resposta.put("page", page.getNumber() + 1);
-        resposta.put("limit", page.getSize());
-        resposta.put("totalPages", page.getTotalPages());
-        return resposta;
+                .collect(Collectors.toList());
+
+        PaginatedResponseDto.MetaDto meta = PaginatedResponseDto.MetaDto.builder()
+                .totalItems(page.getTotalElements())
+                .itemCount(data.size())
+                .itemsPerPage(page.getSize())
+                .totalPages(page.getTotalPages())
+                .currentPage(page.getNumber() + 1)
+                .build();
+
+        return PaginatedResponseDto.<R>builder()
+                .data(data)
+                .meta(meta)
+                .build();
     }
 }

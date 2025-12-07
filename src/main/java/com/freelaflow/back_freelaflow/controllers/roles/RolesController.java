@@ -1,5 +1,6 @@
 package com.freelaflow.back_freelaflow.controllers.roles;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.roles.dto.RoleRequestDto;
 import com.freelaflow.back_freelaflow.controllers.roles.dto.RoleResponseDto;
 import com.freelaflow.back_freelaflow.controllers.roles.dto.RoleUpdateDto;
@@ -27,14 +28,14 @@ public class RolesController {
         return globalExceptionHandler.handleCreateSuccess("Sucesso ao criar Role", dto);
     }
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getRoles(
+    public ResponseEntity<PaginatedResponseDto<RoleResponseDto>> getRoles(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(required = false) Boolean ativo,
             @RequestParam(required = false) String search) {
 
-        Map<String, Object> resultado = roleService.getRoles(page, limit, ativo, search);
-        return globalExceptionHandler.handleCreateSuccess("Sucesso ao criar Role", resultado);
+        PaginatedResponseDto<RoleResponseDto> resultado = roleService.getRoles(page, limit, ativo, search);
+        return globalExceptionHandler.handlePaginatedSuccess(resultado);
     }
     @PatchMapping("/{id}")
     public ResponseEntity<Map<String, Object>> atualizarRole(

@@ -1,12 +1,11 @@
 package com.freelaflow.back_freelaflow.controllers.proposals;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.proposals.dto.ProposalRequestDto;
 import com.freelaflow.back_freelaflow.exceptions.GlobalExceptionHandler;
 import com.freelaflow.back_freelaflow.models.Contract;
 import com.freelaflow.back_freelaflow.models.Proposal;
 import com.freelaflow.back_freelaflow.services.ProposalService;
-import com.freelaflow.back_freelaflow.utils.PaginationUtils;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,21 +30,21 @@ public class ProposalController {
 
     // Atende findAll, findByStatus e findByClient do BFF
     @GetMapping
-    public ResponseEntity<Map<String, Object>> list(
+    public ResponseEntity<PaginatedResponseDto<Proposal>> list(
             @RequestParam Long freelancerId, // Idealmente viria do Token/Contexto, mas o BFF passa via query ou DTO no findAll se ajustarmos, mas aqui assumo que o BFF manda
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long clienteId) {
-        
-        // Nota: O BFF do seu código não manda 'freelancerId' na query string explicitamente no método findAll, 
+
+        // Nota: O BFF do seu código não manda 'freelancerId' na query string explicitamente no método findAll,
         // mas manda filtros. Se o backend precisar filtrar por freelancer logado, o BFF teria que passar esse ID.
         // Assumirei que você ajustará o BFF para passar o freelancerId ou que estamos usando um fixo para teste se não vier.
         if (freelancerId == null) freelancerId = 1L; // Fallback para teste rápido
 
-        Page<Proposal> result = proposalService.findAll(freelancerId, page, limit, search, status, clienteId);
-        return globalExceptionHandler.handleSuccess("Lista de propostas", PaginationUtils.toPaginatedResponse(result, p -> p));
+        PaginatedResponseDto<Proposal> result = proposalService.findAll(freelancerId, page, limit, search, status, clienteId);
+        return globalExceptionHandler.handlePaginatedSuccess(result);
     }
 
     @GetMapping("/{id}")

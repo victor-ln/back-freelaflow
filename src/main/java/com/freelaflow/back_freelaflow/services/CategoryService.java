@@ -1,5 +1,6 @@
 package com.freelaflow.back_freelaflow.services;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.category.dto.CategoryRequestDto;
 import com.freelaflow.back_freelaflow.controllers.category.dto.CategoryResponseDto;
 import com.freelaflow.back_freelaflow.controllers.category.dto.CategoryUpdateDto;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +30,7 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final FreelancerRepository freelancerRepository;
 
-    public Map<String, Object> listarCategorias(Long idfreelancer, String search, Boolean ativo, int page, int limit) {
+    public PaginatedResponseDto<CategoryResponseDto> listarCategorias(Long idfreelancer, String search, Boolean ativo, int page, int limit) {
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("tipo").ascending());
         
         Specification<Category> spec = (root, query, cb) -> {

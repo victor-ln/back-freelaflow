@@ -1,5 +1,6 @@
 package com.freelaflow.back_freelaflow.controllers.category;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.category.dto.CategoryRequestDto;
 import com.freelaflow.back_freelaflow.controllers.category.dto.CategoryResponseDto;
 import com.freelaflow.back_freelaflow.controllers.category.dto.CategoryUpdateDto;
@@ -31,7 +32,7 @@ public class CategoryController {
 
     // Endpoint genérico que o BFF está chamando
     @GetMapping
-    public ResponseEntity<Map<String, Object>> listar(
+    public ResponseEntity<PaginatedResponseDto<CategoryResponseDto>> listar(
             @RequestParam(required = false) Long freelancerId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
@@ -39,18 +40,18 @@ public class CategoryController {
             @RequestParam(required = false) String search
     ) {
         if (freelancerId == null) freelancerId = 1L; // Fallback
-        return globalExceptionHandler.handleSuccess("Sucesso na consulta", categoryService.listarCategorias(freelancerId, search, ativo, page, limit));
+        return globalExceptionHandler.handlePaginatedSuccess(categoryService.listarCategorias(freelancerId, search, ativo, page, limit));
     }
 
     @GetMapping("/{id}/freelancer")
-    public ResponseEntity<Map<String, Object>> listarCategorias(
+    public ResponseEntity<PaginatedResponseDto<CategoryResponseDto>> listarCategorias(
             @PathVariable Long id,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(required = false) Boolean ativo,
             @RequestParam(required = false) String search
     ) {
-        return globalExceptionHandler.handleSuccess("Sucesso na consulta", categoryService.listarCategorias(id, search, ativo, page, limit));
+        return globalExceptionHandler.handlePaginatedSuccess(categoryService.listarCategorias(id, search, ativo, page, limit));
     }
 
     @GetMapping("/{id}")

@@ -1,5 +1,6 @@
 package com.freelaflow.back_freelaflow.services;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.kanban.dto.KanbanRequestDto;
 import com.freelaflow.back_freelaflow.exceptions.ResourceNotFoundException;
 import com.freelaflow.back_freelaflow.models.Freelancer;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class KanbanService {
@@ -35,7 +35,7 @@ public class KanbanService {
         this.proposalRepository = proposalRepository;
     }
 
-    public Map<String, Object> listar(int page, int limit, Long freelancerId, Boolean ativo) {
+    public PaginatedResponseDto<Kanban> listar(int page, int limit, Long freelancerId, Boolean ativo) {
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("id").descending());
 
         Specification<Kanban> spec = (root, query, cb) -> {

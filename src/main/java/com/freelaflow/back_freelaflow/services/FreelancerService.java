@@ -1,5 +1,6 @@
 package com.freelaflow.back_freelaflow.services;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.freelancers.dto.*;
 import com.freelaflow.back_freelaflow.exceptions.ConflitException;
 import com.freelaflow.back_freelaflow.exceptions.ResourceNotFoundException;
@@ -70,7 +71,7 @@ public class FreelancerService {
         return freelancerEntityToFreelancerDto(freelancerRepository.save(freelancer));
     }
 
-    public Map<String, Object> listarFreelancers(int page, int limit, String search) {
+    public PaginatedResponseDto<FreelancerReponseDto> listarFreelancers(int page, int limit, String search) {
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by("id").ascending());
         Page<Freelancer> resultado;
 

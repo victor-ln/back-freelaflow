@@ -1,6 +1,7 @@
 package com.freelaflow.back_freelaflow.services;
 
 import ch.qos.logback.core.net.server.Client;
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.clients.dto.ClientRequestDto;
 import com.freelaflow.back_freelaflow.controllers.clients.dto.ClienteResponseDto;
 import com.freelaflow.back_freelaflow.controllers.clients.dto.EnderecoDto;
@@ -20,7 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,7 +68,7 @@ public class ClienteService {
         return client;
     }
 
-    public Map<String, Object> getAllClientsByFreelancer(Long id, int page, int limit, String search) {
+    public PaginatedResponseDto<ClienteResponseDto> getAllClientsByFreelancer(Long id, int page, int limit, String search) {
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<Cliente> clientesPage;
 

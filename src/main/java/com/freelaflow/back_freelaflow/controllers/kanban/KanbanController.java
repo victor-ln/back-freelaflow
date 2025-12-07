@@ -1,9 +1,11 @@
 package com.freelaflow.back_freelaflow.controllers.kanban;
 
+import com.freelaflow.back_freelaflow.common.dto.PaginatedResponseDto;
 import com.freelaflow.back_freelaflow.controllers.kanban.dto.KanbanRequestDto;
 import com.freelaflow.back_freelaflow.controllers.kanban.dto.MoveTaskDto;
 import com.freelaflow.back_freelaflow.controllers.kanban.dto.TaskRequestDto;
 import com.freelaflow.back_freelaflow.exceptions.GlobalExceptionHandler;
+import com.freelaflow.back_freelaflow.models.Kanban;
 import com.freelaflow.back_freelaflow.services.KanbanService;
 import com.freelaflow.back_freelaflow.services.TaskService;
 import org.springframework.http.ResponseEntity;
@@ -28,17 +30,17 @@ public class KanbanController {
     // --- KANBAN ENDPOINTS ---
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAll(
+    public ResponseEntity<PaginatedResponseDto<Kanban>> getAll(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(required = false) Long freelancerId,
             @RequestParam(required = false) Long propostaId,
             @RequestParam(required = false) Boolean ativo) {
-        
+
         Long fId = (freelancerId != null) ? freelancerId : 1L; // Fallback dev
         // Nota: O BFF chama findAllTasks com /kanbans/tasks?... precisamos diferenciar?
         // O BFF diferencia pela URL. Se cair aqui, é kanban.
-        return globalExceptionHandler.handleSuccess("Lista de Kanbans", kanbanService.listar(page, limit, fId, ativo));
+        return globalExceptionHandler.handlePaginatedSuccess(kanbanService.listar(page, limit, fId, ativo));
     }
 
     @GetMapping("/{id}")
