@@ -32,6 +32,9 @@ public class Template {
     @Column(name = "storage_type")
     private String storageType = "LOCAL";
 
+    @Column(nullable = false)
+    private String status = "EM_REVISAO"; // EM_REVISAO, APROVADO, REJEITADO
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "freelancer_id", nullable = false)

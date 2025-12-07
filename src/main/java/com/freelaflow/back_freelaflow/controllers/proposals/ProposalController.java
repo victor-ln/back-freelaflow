@@ -80,9 +80,15 @@ public class ProposalController {
     }
 
     @PostMapping("/{id}/generate-contract")
-    public ResponseEntity<Map<String, Object>> generateContract(@PathVariable Long id) {
-        Contract contract = proposalService.generateContract(id);
-        return globalExceptionHandler.handleSuccess("Contrato gerado (Mock)", contract);
+    public ResponseEntity<Map<String, Object>> generateContract(
+            @PathVariable Long id,
+            @RequestBody Map<String, Long> body) {
+        Long templateId = body.get("templateId");
+        if (templateId == null) {
+            throw new RuntimeException("templateId é obrigatório");
+        }
+        Contract contract = proposalService.generateContract(id, templateId);
+        return globalExceptionHandler.handleSuccess("Contrato gerado com sucesso", contract);
     }
 
     @GetMapping("/metrics")

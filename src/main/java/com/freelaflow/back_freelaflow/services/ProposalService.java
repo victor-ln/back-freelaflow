@@ -15,6 +15,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,11 +34,14 @@ public class ProposalService {
     private final ContractRepository contractRepository;
     private final ServiceRepository serviceRepository;
     private final TemplateRepository templateRepository;
+    private final FileStorageService fileStorageService;
+    private final TemplateProcessorService templateProcessorService;
 
-    public ProposalService(ProposalRepository proposalRepository, ClienteRepository clienteRepository, 
+    public ProposalService(ProposalRepository proposalRepository, ClienteRepository clienteRepository,
                            FreelancerRepository freelancerRepository, KanbanRepository kanbanRepository,
                            ContractRepository contractRepository, ServiceRepository serviceRepository,
-                           TemplateRepository templateRepository) {
+                           TemplateRepository templateRepository, FileStorageService fileStorageService,
+                           TemplateProcessorService templateProcessorService) {
         this.proposalRepository = proposalRepository;
         this.clienteRepository = clienteRepository;
         this.freelancerRepository = freelancerRepository;
@@ -42,6 +49,8 @@ public class ProposalService {
         this.contractRepository = contractRepository;
         this.serviceRepository = serviceRepository;
         this.templateRepository = templateRepository;
+        this.fileStorageService = fileStorageService;
+        this.templateProcessorService = templateProcessorService;
     }
 
     // LISTAGEM COM FILTROS DINÂMICOS (Specifications)
@@ -141,26 +150,88 @@ public class ProposalService {
 
     // GERAÇÃO DE CONTRATO
     @Transactional
-    public Contract generateContract(Long proposalId) {
+    public Contract generateContract(Long proposalId, Long templateId) {
         Proposal proposal = findById(proposalId);
-        
-        var serviceOpt = serviceRepository.findByFreelancerIdAndAtivoTrue(proposal.getFreelancer().getId(), PageRequest.of(0,1)).getContent().stream().findFirst();
-        var templateOpt = templateRepository.findByFreelancerId(proposal.getFreelancer().getId(), PageRequest.of(0,1)).getContent().stream().findFirst();
 
-        if (serviceOpt.isEmpty() || templateOpt.isEmpty()) {
-             return null; 
+        // Busca o template
+        Template template = templateRepository.findById(templateId)
+                .orElseThrow(() -> new ResourceNotFoundException("Template não encontrado"));
+
+        // Valida se o template está aprovado
+        if (!"APROVADO".equals(template.getStatus())) {
+            throw new RuntimeException("Template não está aprovado para uso");
         }
 
-        Contract contract = new Contract();
-        contract.setFreelancer(proposal.getFreelancer());
-        contract.setCliente(proposal.getCliente());
-        contract.setService(serviceOpt.get());
-        contract.setTemplate(templateOpt.get());
-        contract.setNomeArquivo("Contrato_" + proposal.getId() + ".pdf");
-        contract.setCaminhoArquivo("/tmp/mock_contract.pdf");
-        contract.setStatus("GERADO");
-        
-        return contractRepository.save(contract);
+        // Busca um serviço ativo do freelancer
+        var serviceOpt = serviceRepository.findByFreelancerIdAndAtivoTrue(
+                proposal.getFreelancer().getId(), PageRequest.of(0, 1))
+                .getContent().stream().findFirst();
+
+        if (serviceOpt.isEmpty()) {
+            throw new ResourceNotFoundException("Nenhum serviço ativo encontrado para o freelancer");
+        }
+
+        com.freelaflow.back_freelaflow.models.Service service = serviceOpt.get();
+
+        // Prepara as variáveis para substituição
+        Map<String, String> variables = buildContractVariables(proposal, service);
+
+        try {
+            // Gera o nome do arquivo processado
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String outputFilename = "Contrato_" + proposal.getId() + "_" + timestamp + ".docx";
+            Path outputPath = fileStorageService.getFileStorageLocation().resolve(outputFilename);
+
+            // Processa o template
+            Path templatePath = Path.of(template.getFilepath());
+            templateProcessorService.processTemplate(templatePath, outputPath, variables);
+
+            // Cria o registro do contrato
+            Contract contract = new Contract();
+            contract.setFreelancer(proposal.getFreelancer());
+            contract.setCliente(proposal.getCliente());
+            contract.setService(service);
+            contract.setTemplate(template);
+            contract.setNomeArquivo(outputFilename);
+            contract.setCaminhoArquivo(outputPath.toString());
+            contract.setStatus("GERADO");
+
+            return contractRepository.save(contract);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao processar template: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Constrói o mapa de variáveis para substituição no template
+     */
+    private Map<String, String> buildContractVariables(Proposal proposal, com.freelaflow.back_freelaflow.models.Service service) {
+        Map<String, String> variables = new HashMap<>();
+
+        // Variáveis do cliente
+        variables.put("CLIENTE_NOME", proposal.getCliente().getNome());
+        variables.put("CLIENTE_EMAIL", proposal.getCliente().getEmail() != null ? proposal.getCliente().getEmail() : "");
+        variables.put("CLIENTE_TELEFONE", proposal.getCliente().getTelefone() != null ? proposal.getCliente().getTelefone() : "");
+
+        // Variáveis do freelancer
+        variables.put("FREELANCER_NOME", proposal.getFreelancer().getNome());
+        variables.put("FREELANCER_EMAIL", proposal.getFreelancer().getEmail() != null ? proposal.getFreelancer().getEmail() : "");
+
+        // Variáveis da proposta
+        variables.put("VALOR_TOTAL", proposal.getValor() != null ? proposal.getValor().toString() : "0");
+        variables.put("DESCRICAO", proposal.getDescricao() != null ? proposal.getDescricao() : "");
+
+        // Variáveis do serviço
+        variables.put("SERVICO_NOME", service.getNome());
+        variables.put("SERVICO_DESCRICAO", service.getDescricao() != null ? service.getDescricao() : "");
+        variables.put("PRECO_BASE", service.getPrecoBase() != null ? service.getPrecoBase().toString() : "0");
+
+        // Variáveis de data
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        variables.put("DATA_GERACAO", LocalDateTime.now().format(formatter));
+
+        return variables;
     }
 
     public Map<String, Object> getMetrics(Long freelancerId) {
