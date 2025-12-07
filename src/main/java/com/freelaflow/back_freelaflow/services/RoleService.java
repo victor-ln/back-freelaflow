@@ -85,6 +85,16 @@ public class RoleService {
         Role updated = roleRepository.save(role);
         return rolesEntityToRoles(updated);
     }
+
+    public RoleResponseDto updateStatus(Long id, Boolean isActive) {
+        Role role = roleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Role não encontrada"));
+
+        role.setAtivo(isActive);
+        Role updated = roleRepository.save(role);
+        return rolesEntityToRoles(updated);
+    }
+
     public RoleResponseDto rolesEntityToRoles (Role role) {
         RoleResponseDto dto = new RoleResponseDto();
         dto.setId(role.getId());

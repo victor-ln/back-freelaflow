@@ -103,6 +103,16 @@ public class CategoryService {
         return categoryEntityToCategoryDto(category);
     }
 
+    public CategoryResponseDto updateStatus(Long id, Boolean status) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
+
+        category.setAtivo(status);
+        categoryRepository.save(category);
+
+        return categoryEntityToCategoryDto(category);
+    }
+
     public void deleteCategoria(Long id) {
         categoryRepository.deleteById(id);
     }

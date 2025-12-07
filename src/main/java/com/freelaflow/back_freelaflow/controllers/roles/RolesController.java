@@ -45,6 +45,26 @@ public class RolesController {
         RoleResponseDto dto = roleService.atualizarRole(id, roleUpdateDto);
         return globalExceptionHandler.handleSuccess("Role atualizada com sucesso", dto);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> updateRole(
+            @PathVariable Long id,
+            @RequestBody RoleUpdateDto roleUpdateDto) {
+
+        RoleResponseDto dto = roleService.atualizarRole(id, roleUpdateDto);
+        return globalExceptionHandler.handleSuccess("Role atualizada com sucesso", dto);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Map<String, Object>> updateStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, Boolean> body) {
+
+        Boolean isActive = body.get("isActive");
+        RoleResponseDto dto = roleService.updateStatus(id, isActive);
+        return globalExceptionHandler.handleSuccess("Status atualizado", dto);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getRoleById(@PathVariable Long id) {
         RoleResponseDto dto = roleService.getRoleById(id);

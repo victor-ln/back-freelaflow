@@ -83,6 +83,28 @@ public class ServiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
     }
 
+    public Service update(Long id, ServiceRequestDto dto) {
+        Service service = getById(id);
+
+        if (dto.getNome() != null) service.setNome(dto.getNome());
+        if (dto.getDescricao() != null) service.setDescricao(dto.getDescricao());
+        if (dto.getValor() != null) service.setValor(dto.getValor());
+
+        if (dto.getCategoriaId() != null) {
+            Category category = categoryRepository.findById(dto.getCategoriaId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada"));
+            service.setCategoria(category);
+        }
+
+        return serviceRepository.save(service);
+    }
+
+    public Service updateStatus(Long id, String status) {
+        Service service = getById(id);
+        service.setStatus(status);
+        return serviceRepository.save(service);
+    }
+
     public void delete(Long id) {
         Service service = getById(id);
         service.setAtivo(false);

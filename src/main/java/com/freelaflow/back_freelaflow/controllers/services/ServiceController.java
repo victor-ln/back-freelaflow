@@ -47,7 +47,23 @@ public class ServiceController {
             @RequestParam(required = false) String search) {
         return globalExceptionHandler.handlePaginatedSuccess(serviceService.listar(id, search, page, limit, null));
     }
-    
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getById(@PathVariable Long id) {
+        return globalExceptionHandler.handleSuccess("Serviço encontrado", serviceService.getById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @RequestBody ServiceRequestDto dto) {
+        return globalExceptionHandler.handleSuccess("Serviço atualizado", serviceService.update(id, dto));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Map<String, Object>> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String status = body.get("status");
+        return globalExceptionHandler.handleSuccess("Status atualizado", serviceService.updateStatus(id, status));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
         serviceService.delete(id);

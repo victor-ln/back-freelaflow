@@ -49,6 +49,13 @@ public class ClienteController {
         return globalExceptionHandler.handleSuccess("Sucesso", clienteService.updateClient(id,dto));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> updateClientPut(
+            @PathVariable Long id,
+            @RequestBody ClientRequestDto dto) {
+        return globalExceptionHandler.handleSuccess("Cliente atualizado", clienteService.updateClient(id,dto));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> deleteClient(@PathVariable Long id) {
         clienteService.deleteClient(id);

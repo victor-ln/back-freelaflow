@@ -68,6 +68,25 @@ public class CategoryController {
         return globalExceptionHandler.handleSuccess("Sucesso na edição", updated);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> updateCategoryPut(
+            @PathVariable Long id,
+            @RequestBody CategoryUpdateDto dto) {
+
+        CategoryResponseDto updated = categoryService.updateCategory(id, dto);
+        return globalExceptionHandler.handleSuccess("Categoria atualizada", updated);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Map<String, Object>> updateStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, Boolean> body) {
+
+        Boolean status = body.get("status");
+        CategoryResponseDto updated = categoryService.updateStatus(id, status);
+        return globalExceptionHandler.handleSuccess("Status atualizado", updated);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategoria(id);
