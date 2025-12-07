@@ -14,4 +14,7 @@ public class CategoryRequestDto {
 
     @NotNull(message = "O ID do freelancer é obrigatório.")
     private Long freelancerId;
+
+    // Adicionado para receber o status (opcional, default true via lógica ou front)
+    private Boolean ativo; 
 }

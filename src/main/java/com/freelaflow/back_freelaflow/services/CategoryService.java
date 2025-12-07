@@ -69,10 +69,12 @@ public class CategoryService {
         if (categoryRepository.existsByTipoAndFreelancerId(dto.getTipo(), dto.getFreelancerId())) {
             throw new RuntimeException("Já existe uma categoria com esse tipo para este freelancer.");
         }
+        
         Category category = new Category();
         category.setTipo(dto.getTipo());
         category.setFreelancer(freelancer);
-        category.setAtivo(true);
+        // Se vier null, assume true, senão usa o valor enviado
+        category.setAtivo(dto.getAtivo() != null ? dto.getAtivo() : true);
 
         Category saved = categoryRepository.save(category);
 
