@@ -187,6 +187,7 @@ public class FreelancerService {
         dto.setCpfCnpj(freelancer.getCpfCnpj());
         dto.setEndereco(freelancer.getEndereco());
         dto.setRoles(freelancer.getRoles());
+        dto.setSenha(freelancer.getSenha());
         return dto;
     }
 

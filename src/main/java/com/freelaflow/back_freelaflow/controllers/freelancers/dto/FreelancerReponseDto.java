@@ -18,4 +18,5 @@ public class FreelancerReponseDto {
     private boolean ativo;
     private Endereco endereco;
     private Set<Role> roles = new HashSet<>();
+    private String senha;
 }
