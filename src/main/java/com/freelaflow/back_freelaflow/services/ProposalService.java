@@ -102,11 +102,19 @@ public class ProposalService {
                 .orElseThrow(() -> new ResourceNotFoundException("Freelancer não encontrado"));
 
         Proposal proposal = new Proposal();
+        proposal.setTitulo(dto.getTitulo());
         proposal.setDescricao(dto.getDescricao());
         proposal.setValor(dto.getValor());
         proposal.setCliente(cliente);
         proposal.setFreelancer(freelancer);
-        proposal.setStatus("PENDING"); 
+        proposal.setStatus("PENDING");
+
+        // Set template if provided
+        if (dto.getTemplateId() != null) {
+            Template template = templateRepository.findById(dto.getTemplateId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Template não encontrado"));
+            proposal.setTemplate(template);
+        }
 
         return proposalRepository.save(proposal);
     }
@@ -114,8 +122,22 @@ public class ProposalService {
     @Transactional
     public Proposal update(Long id, ProposalRequestDto dto) {
         Proposal proposal = findById(id);
-        proposal.setDescricao(dto.getDescricao());
-        proposal.setValor(dto.getValor());
+
+        if (dto.getTitulo() != null) {
+            proposal.setTitulo(dto.getTitulo());
+        }
+        if (dto.getDescricao() != null) {
+            proposal.setDescricao(dto.getDescricao());
+        }
+        if (dto.getValor() != null) {
+            proposal.setValor(dto.getValor());
+        }
+        if (dto.getTemplateId() != null) {
+            Template template = templateRepository.findById(dto.getTemplateId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Template não encontrado"));
+            proposal.setTemplate(template);
+        }
+
         return proposalRepository.save(proposal);
     }
 
@@ -225,7 +247,7 @@ public class ProposalService {
         // Variáveis do serviço
         variables.put("SERVICO_NOME", service.getNome());
         variables.put("SERVICO_DESCRICAO", service.getDescricao() != null ? service.getDescricao() : "");
-        variables.put("PRECO_BASE", service.getPrecoBase() != null ? service.getPrecoBase().toString() : "0");
+        variables.put("PRECO_BASE", service.getValor() != null ? service.getValor().toString() : "0");
 
         // Variáveis de data
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
