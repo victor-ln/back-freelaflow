@@ -41,7 +41,7 @@ public class TemplateController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String search) {
 
-        Long fId = (freelancerId != null) ? freelancerId : 1L;
+        Long fId = freelancerId;
         return globalExceptionHandler.handlePaginatedSuccess(
                 templateService.listar(page, limit, fId, status, search));
     }
